@@ -6,12 +6,15 @@ import { User } from './entities/user.entity';
 import { Model } from 'mongoose';
 import * as bcryptjs from 'bcryptjs';
 import { loginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from './interfaces/payload.interface';
 
 @Injectable()
 export class AuthService {
 
   constructor(
-    @InjectModel(User.name) private userModel: Model<User>
+    @InjectModel(User.name) private userModel: Model<User>,
+    private jstService: JwtService
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -25,6 +28,7 @@ export class AuthService {
 
       await newUser.save();
       const {password:_, ...user} = newUser.toJSON();
+      console.log('se creo el usuario', user)
       return user;
       //1- Encriptar contraseña
       //2- Guardar usuario
@@ -40,7 +44,7 @@ export class AuthService {
     const {email, password} = loginDto;
       const user = await this.userModel.findOne({email});
       if(!user) {
-        throw new UnauthorizedException('Not valid credentials - email')
+        throw new UnauthorizedException('Not valid credentials - email- se muestra esto')
       }
       if(!bcryptjs.compareSync(password, user.password)) {
         throw new UnauthorizedException('Not valid credentials - password')
@@ -49,8 +53,9 @@ export class AuthService {
       const {password:_, ...rest} = user.toJSON();
       return {
         user: {...rest},
-        token: 'ABC-123'
+        token: this.getJwtToken({ id: user.id }),
       }
+
   }
 
   findAll() {
@@ -67,5 +72,10 @@ export class AuthService {
 
   remove(id: number) {
     return `This action removes a #${id} auth`;
+  }
+
+  getJwtToken(payload: JwtPayload) {
+    const token = this.jstService.sign(payload);
+    return token;
   }
 }
