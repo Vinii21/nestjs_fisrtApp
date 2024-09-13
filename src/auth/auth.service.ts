@@ -1,13 +1,19 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './entities/user.entity';
 import { Model } from 'mongoose';
+
 import * as bcryptjs from 'bcryptjs';
+
 import { loginDto } from './dto/login.dto';
+
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/payload.interface';
+import { LoginResponse } from './interfaces/login-response.interface';
+import { RegisterUserDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -30,9 +36,9 @@ export class AuthService {
       const {password:_, ...user} = newUser.toJSON();
       console.log('se creo el usuario', user)
       return user;
-      //1- Encriptar contraseña
-      //2- Guardar usuario
-      //3- Generar JWT
+      //1- Encriptar contraseña | línea 30
+      //2- Guardar usuario | línea 33
+      //3- Generar JWT  | línea 77
       
     } catch (error) {
       console.log(error)
@@ -58,8 +64,24 @@ export class AuthService {
 
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  async register(registerUserDto: RegisterUserDto ): Promise<LoginResponse> {
+
+    const user = await this.create(registerUserDto);
+
+    return {
+      user: user,
+      token: this.getJwtToken({id: user._id})
+    }
+  }
+
+  findAll(): Promise<User[]> {
+    return this.userModel.find();
+  }
+
+  async findUserById( id: string ) {
+    const user = await this.userModel.findById(id);
+    const {password, ...rest} = user.toJSON();
+    return rest;
   }
 
   findOne(id: number) {

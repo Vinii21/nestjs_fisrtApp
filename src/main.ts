@@ -7,6 +7,11 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
+      /* 
+      whitelist: true,
+      Esta opción indica que cualquier propiedad que no esté definida en el DTO (Data Transfer Object) será 
+      eliminada. Esto ayuda a prevenir la inyección de datos no deseados.
+      */
       whitelist: true,
       forbidNonWhitelisted: true
     })
