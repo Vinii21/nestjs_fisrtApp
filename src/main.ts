@@ -5,6 +5,9 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Con esto habilitamos el CORS para permitir el uso al frontend
+  app.enableCors();
+
   app.useGlobalPipes(
     new ValidationPipe({
       /* 
